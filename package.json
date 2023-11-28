@@ -1,0 +1,16 @@
+{
+  "name": "sqlite-ui",
+  "version": "1.0.0",
+  "description": "A user interface for SQLite browser interaction.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "npx http-server -c-1 docs -o index.1.html",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
