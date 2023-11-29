@@ -135,17 +135,51 @@ console.log(error);
 throw error;
 }
 
+},
+obtener_base_de_datos_de_comandos_persistida() {try {
+if((!(typeof window.localStorage.__sqlite_ui__ === 'string'))) {
+window.localStorage.__sqlite_ui__ = "[]";
 }
+try {
+JSON.parse(window.localStorage.__sqlite_ui__);
+} catch(error) {
+window.localStorage.__sqlite_ui__ = "[]";}
+return JSON.parse(window.localStorage.__sqlite_ui__);
+} catch(error) {
+console.log(error);
+throw error;
+}
+
 },
-watch:{ 
+guardar_base_de_datos_de_comandos_persistida( datos ) {try {
+window.localStorage.__sqlite_ui__ = JSON.stringify(datos, null, 2);
+} catch(error) {
+console.log(error);
+throw error;
+}
+
 },
-async beforeMount() {try {
+async actualizar_comandos(  ) {try {
+const comandos = this.obtener_base_de_datos_de_comandos_persistida(  );
+for(let index = 0; index < comandos.length; index++) {const comando = comandos[ index ];
+try {
+(await this.$db.run( comando,
+false ));
+} catch(error) {
+console.log(error);}}
+} catch(error) {
+console.log(error);
+throw error;
+}
+
+},
+async generar_base_de_datos(  ) {try {
 const sqlite3 = (await window.sqlite3InitModule(  ));
-this.$window = window;
 const db = new sqlite3.oo1.DB( "/sqlite_ui.sqlite3",
 'ct' );
-this.$db = { native:db,
-run:function( sql ) {try {
+return { native:db,
+run:( sql,
+habilitar_historial = true ) => {try {
 return new Promise( ( ok,
 fail ) => {try {
 const resultRows = [  ];
@@ -153,6 +187,12 @@ const resultado = db.exec( { sql,
 rowMode:"object",
 returnValue:"resultRows"
 } );
+if(habilitar_historial && (!(( sql.trim(  ).toUpperCase(  ).startsWith( "SELECT" ) )))) {
+console.log(resultado);
+const comandos = this.obtener_base_de_datos_de_comandos_persistida(  );
+comandos.push(sql)
+this.guardar_base_de_datos_de_comandos_persistida( comandos );
+}
 return ok( resultado );
 } catch(error) {
 return fail( error );}
@@ -169,6 +209,16 @@ console.log(error);
 throw error;
 }
 
+}
+},
+watch:{ 
+},
+async beforeMount() {try {
+this.$window = window;
+this.$db = (await this.generar_base_de_datos(  ));
+(await this.actualizar_comandos(  ));
+} catch(error) {
+console.log(error);}
 },
 mounted() {
 }
