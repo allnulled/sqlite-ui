@@ -188,7 +188,6 @@ rowMode:"object",
 returnValue:"resultRows"
 } );
 if(habilitar_historial && (!(( sql.trim(  ).toUpperCase(  ).startsWith( "SELECT" ) )))) {
-console.log(resultado);
 const comandos = this.obtener_base_de_datos_de_comandos_persistida(  );
 comandos.push(sql)
 this.guardar_base_de_datos_de_comandos_persistida( comandos );
