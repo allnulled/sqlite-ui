@@ -129,27 +129,58 @@ asigno window.App como una aplicación vue2 con nombre "App" con rutas [{
       método eliminar_error con (error_index) donde {
         hago this.errores.splice(error_index, 1).
       }.
+      método obtener_base_de_datos_de_comandos_persistida donde {
+        si window.localStorage.__sqlite_ui__ no es tipo texto {
+          asigno window.localStorage.__sqlite_ui__ como "[]".
+        }.
+        intento donde hago window.localStorage.__sqlite_ui__ parseado como JSON en errores asigno window.localStorage.__sqlite_ui__ como "[]".
+        retorno window.localStorage.__sqlite_ui__ parseado como JSON.
+      }.
+      método guardar_base_de_datos_de_comandos_persistida con (datos) donde {
+        asigno window.localStorage.__sqlite_ui__ como datos textualizado.
+      }.
+      método asíncrono actualizar_comandos con () donde {
+        creo comandos como this.obtener_base_de_datos_de_comandos_persistida().
+        desde 0 hasta comandos.length {
+          creo comando como comandos[index].
+          intento {
+            hago asíncronamente this.$db.run(comando, false).
+          } en errores {
+            imprimo error.
+          }.
+        }.
+      }.
+      método asíncrono generar_base_de_datos con () donde {
+        creo sqlite3 como asíncronamente window.sqlite3InitModule().
+        creo db como una nueva sqlite3.oo1.DB("/sqlite_ui.sqlite3",'ct').
+        retorno {
+          native: db,
+          run: una lambda con (sql, habilitar_historial o en su defecto true) donde {
+            retorno una nueva Promise(una lambda con (ok, fail) donde {
+              creo resultRows como [].
+              creo resultado como db.exec({
+                sql,
+                rowMode: "object",
+                returnValue: "resultRows"
+              }).
+              si habilitar_historial y no (sql.trim().toUpperCase().startsWith("SELECT")) {
+                imprimo resultado.
+                creo comandos como this.obtener_base_de_datos_de_comandos_persistida().
+                apendizo sql en comandos.
+                hago this.guardar_base_de_datos_de_comandos_persistida(comandos).
+              }.
+              retorno ok(resultado).
+            } en errores retorno fail(error)).
+          }
+        }.
+      }.
     }.
     propiedad watch como {}.
     método asíncrono beforeMount donde {
-      creo sqlite3 como asíncronamente window.sqlite3InitModule().
       asigno this.$window como window.
-      creo db como una nueva sqlite3.oo1.DB("/sqlite_ui.sqlite3",'ct').
-      asigno this.$db como {
-        native: db,
-        run: una función con (sql) donde {
-          retorno una nueva Promise(una lambda con (ok, fail) donde {
-            creo resultRows como [].
-            creo resultado como db.exec({
-              sql,
-              rowMode: "object",
-              returnValue: "resultRows"
-            }).
-            retorno ok(resultado).
-          } en errores retorno fail(error)).
-        }
-      }.
-    }.
+      asigno this.$db como asíncronamente this.generar_base_de_datos().
+      hago asíncronamente this.actualizar_comandos().
+    } en errores imprimo error.
     método mounted donde {}.
   }.
 } montada en "#app".
